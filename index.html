@@ -100,7 +100,7 @@
     if (!isMobile) { window.addEventListener('mousemove', e => { control = (e.clientX/window.innerWidth)*2-1; });
     } else if (window.DeviceOrientationEvent) { window.addEventListener('deviceorientation', e => { control = e.gamma/45; }); }
     let car;
-    new THREE.GLTFLoader().load('models/911_964.glb', gltf => { car = gltf.scene; car.scale.set(2,2,2); car.position.set(0,-0.5,0); scene.add(car); });
+    new THREE.GLTFLoader().load('911_964.glb', gltf => { car = gltf.scene; car.scale.set(2,2,2); car.position.set(0,-0.5,0); scene.add(car); });
     function updateSceneLighting() { if (bodyEl.classList.contains('light')) { scene.background = lightBg; ambient.intensity = 1.5; hemi.intensity = 2; dir.intensity = 1.2; } else { scene.background = darkBg; ambient.intensity = 1.2; hemi.intensity = 2.5; dir.intensity = 1.5; } }
     (function animate() { requestAnimationFrame(animate); if (car) car.rotation.y += control * 0.05; renderer.render(scene, camera); })();
   </script>
