@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Amir | Portfolio</title>
 
   <!-- Font Awesome -->
@@ -24,7 +24,6 @@
     body.light { background: var(--bg-light); color: var(--text-light); }
 
     #bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; }
-
     header#nav-container {
       position: fixed; top: 0; left: 0; width: 100%; padding: 1rem 2rem; z-index: 2;
       display: flex; justify-content: space-between; align-items: center; transition: background 0.3s;
@@ -33,7 +32,7 @@
     body.light header#nav-container { background: var(--header-bg-light); }
     .logo a {
       font-size: 1.5rem; font-weight: 700; color: var(--neon);
-      text-shadow: 0 0 4px rgba(255,0,127,0.7), 0 0 8px rgba(255,0,127,0.6), 0 0 16px rgba(255,0,127,0.5);
+      text-shadow: 0 0 4px rgba(255,0,127,0.7),0 0 8px rgba(255,0,127,0.6),0 0 16px rgba(255,0,127,0.5);
       text-decoration: none;
     }
     #themeToggle {
@@ -53,7 +52,7 @@
       font-size: 1.25rem; margin-bottom: 2rem;
       text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
-    .socials { display: flex; gap: 1.5rem; }
+    .socials { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
     .socials a {
       font-size: 1.75rem; color: inherit;
       transition: transform 0.2s, color 0.2s, text-shadow 0.2s;
@@ -61,7 +60,7 @@
     }
     .socials a:hover {
       color: var(--neon); transform: translateY(-4px);
-      text-shadow: 0 0 6px rgba(255,0,127,0.8), 0 0 12px rgba(255,0,127,0.6);
+      text-shadow: 0 0 6px rgba(255,0,127,0.8),0 0 12px rgba(255,0,127,0.6);
     }
   </style>
 </head>
@@ -92,6 +91,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.89.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.89.0/examples/js/loaders/GLTFLoader.js"></script>
   <script>
+    // Theme toggle
     const bodyEl = document.body;
     document.getElementById('themeToggle').addEventListener('click', () => {
       bodyEl.classList.toggle('dark'); bodyEl.classList.toggle('light');
@@ -100,6 +100,7 @@
       updateSceneLighting();
     });
 
+    // Three.js init
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('bg').appendChild(renderer.domElement);
@@ -114,8 +115,8 @@
 
     // Dark gray lights
     const ambient = new THREE.AmbientLight(0x333333, 1.0); scene.add(ambient);
-    const hemi    = new THREE.HemisphereLight(0x333333, 0x111111, 2.0); hemi.position.set(0,1,0); scene.add(hemi);
-    const dir     = new THREE.DirectionalLight(0x333333, 1.2); dir.position.set(5,10,5); scene.add(dir);
+    const hemi    = new THREE.HemisphereLight(0x333333, 0x111111, 1.5); hemi.position.set(0,1,0); scene.add(hemi);
+    const dir     = new THREE.DirectionalLight(0x333333, 1.0); dir.position.set(5,10,5); scene.add(dir);
     // Neon accents
     const neon1 = new THREE.PointLight(0xff007f, 2.0, 15); neon1.position.set(5,2,5); scene.add(neon1);
     const neon2 = new THREE.PointLight(0x007eff, 2.0, 15); neon2.position.set(-5,2,-5); scene.add(neon2);
@@ -126,32 +127,16 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    // Control input
     let control = 0;
-    // Always listen for both inputs
-    window.addEventListener('mousemove', e => {
-      control = (e.clientX/window.innerWidth)*2 - 1;
-    });
-    // Orientation with permission request for iOS
-    function initDeviceOrientation() {
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(response => {
-            if (response === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation);
-            }
-          })
-          .catch(console.error);
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation);
-      }
+    window.addEventListener('mousemove', e => { control = (e.clientX/window.innerWidth)*2 - 1; });
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', e => {
+        if (e.gamma !== null) control = THREE.MathUtils.clamp(e.gamma/45, -1, 1);
+      });
     }
-    function handleOrientation(e) {
-      if (e.gamma !== null) control = THREE.MathUtils.clamp(e.gamma/45, -1, 1);
-    }
-    // Initiate on touch/click
-    window.addEventListener('click', initDeviceOrientation, { once: true });
 
+    // Load model
     let car;
     new THREE.GLTFLoader().load('models/911_964.glb', gltf => {
       car = gltf.scene;
@@ -160,20 +145,22 @@
       scene.add(car);
     });
 
+    // Theme-based lighting
     function updateSceneLighting() {
       if (bodyEl.classList.contains('light')) {
         scene.background = lightBg;
         ambient.intensity = 1.2;
-        hemi.intensity = 1.5;
-        dir.intensity = 1.0;
+        hemi.intensity = 1.2;
+        dir.intensity = 0.8;
       } else {
         scene.background = darkBg;
         ambient.intensity = 1.0;
-        hemi.intensity = 2.0;
-        dir.intensity = 1.2;
+        hemi.intensity = 1.5;
+        dir.intensity = 1.0;
       }
     }
 
+    // Animation
     (function animate() {
       requestAnimationFrame(animate);
       if (car) car.rotation.y += control * 0.05;
